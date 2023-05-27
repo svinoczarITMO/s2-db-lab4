@@ -1,0 +1,38 @@
+-- QUERY 1: --
+
+Hash Join  (cost=623.44..5484.01 rows=1 width=8) (actual time=17.427..17.430 rows=0 loops=1)
+"  Hash Cond: (""Н_ВЕДОМОСТИ"".""ВЕД_ИД"" = ""Н_ТИПЫ_ВЕДОМОСТЕЙ"".""ИД"")"
+"  ->  Bitmap Heap Scan on ""Н_ВЕДОМОСТИ""  (cost=622.39..5364.62 rows=45082 width=8) (actual time=2.309..10.857 rows=45611 loops=1)"
+"        Recheck Cond: ((""ЧЛВК_ИД"" < 163249) AND (""ЧЛВК_ИД"" > 142390))"
+        Heap Blocks: exact=1652
+"        ->  Bitmap Index Scan on ""ВЕД_ЧЛВК_FK_IFK""  (cost=0.00..611.11 rows=45082 width=0) (actual time=2.074..2.074 rows=45611 loops=1)"
+"              Index Cond: ((""ЧЛВК_ИД"" < 163249) AND (""ЧЛВК_ИД"" > 142390))"
+  ->  Hash  (cost=1.04..1.04 rows=1 width=4) (actual time=0.057..0.058 rows=2 loops=1)
+        Buckets: 1024  Batches: 1  Memory Usage: 9kB
+"        ->  Seq Scan on ""Н_ТИПЫ_ВЕДОМОСТЕЙ""  (cost=0.00..1.04 rows=1 width=4) (actual time=0.047..0.049 rows=2 loops=1)"
+"              Filter: ((""НАИМЕНОВАНИЕ"")::text > 'Ведомость'::text)"
+              Rows Removed by Filter: 1
+Planning Time: 0.964 ms
+Execution Time: 17.501 ms
+
+-- QUERY 2: --
+
+Nested Loop  (cost=169.65..308.01 rows=281 width=25) (actual time=2.913..4.908 rows=284 loops=1)
+  ->  Hash Join  (cost=169.35..297.91 rows=281 width=21) (actual time=2.898..4.758 rows=284 loops=1)
+"        Hash Cond: (""Н_ОБУЧЕНИЯ"".""ЧЛВК_ИД"" = ""Н_ЛЮДИ"".""ИД"")"
+"        ->  Seq Scan on ""Н_ОБУЧЕНИЯ""  (cost=0.00..119.76 rows=3346 width=8) (actual time=0.016..1.489 rows=3347 loops=1)"
+"              Filter: ((""НЗК"")::text < '933232'::text)"
+              Rows Removed by Filter: 1674
+        ->  Hash  (cost=163.97..163.97 rows=430 width=17) (actual time=2.836..2.837 rows=430 loops=1)
+              Buckets: 1024  Batches: 1  Memory Usage: 30kB
+"              ->  Seq Scan on ""Н_ЛЮДИ""  (cost=0.00..163.97 rows=430 width=17) (actual time=0.012..2.747 rows=430 loops=1)"
+"                    Filter: ((""ОТЧЕСТВО"")::text > 'Сергеевич'::text)"
+                    Rows Removed by Filter: 4688
+  ->  Memoize  (cost=0.30..1.04 rows=1 width=12) (actual time=0.000..0.000 rows=1 loops=284)
+"        Cache Key: ""Н_ОБУЧЕНИЯ"".""ВИД_ОБУЧ_ИД"""
+        Cache Mode: logical
+        Hits: 282  Misses: 2  Evictions: 0  Overflows: 0  Memory Usage: 1kB
+"        ->  Index Scan using ""УЧЕН_PK"" on ""Н_УЧЕНИКИ""  (cost=0.29..1.03 rows=1 width=12) (actual time=0.006..0.006 rows=1 loops=2)"
+"              Index Cond: (""ИД"" = ""Н_ОБУЧЕНИЯ"".""ВИД_ОБУЧ_ИД"")"
+Planning Time: 0.697 ms
+Execution Time: 4.985 ms
